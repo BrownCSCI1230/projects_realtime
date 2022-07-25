@@ -1,0 +1,29 @@
+<scenefile>
+	<globaldata>
+		<diffusecoeff v="0.7"/>
+		<specularcoeff v="0.5"/>
+		<ambientcoeff v="0.5"/>
+	</globaldata>
+
+	<cameradata>
+                <pos x="5" y="5" z="5"/>
+                <focus x="0" y="0" z="0"/>
+		<up x="0" y="1" z="0"/>
+                <heightangle v="60"/>
+	</cameradata>
+
+	<lightdata>
+		<id v="0"/>
+		<position x="8.5" y="5" z="8.5"/>
+		<color r="1" g="1" b="1"/>
+		<function v1=".1" v2="1" v3="0"/>
+	</lightdata>
+
+        <object type="tree" name="door">
+		<transblock>
+			<object type="primitive" name="cube" >
+				<diffuse r="1" g=".95" b=".95"/>
+			</object>
+		</transblock>
+	</object>
+</scenefile>
