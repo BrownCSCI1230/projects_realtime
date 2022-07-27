@@ -1,9 +1,16 @@
 #include "glrenderer.h"
 
 #include <QCoreApplication>
+#include <set>
 #include "sphere.h"
 #include "cube.h"
+#include "mesh.h"
 #include "settings.h"
+
+const uint SPHERE_VAO_INDEX = 0;
+const uint CUBE_VAO_INDEX = 1;
+const uint CONE_VAO_INDEX = 2;
+const uint CYLINDER_VAO_INDEX = 3;
 
 GLRenderer::GLRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
@@ -57,18 +64,52 @@ void GLRenderer::initializeGL()
     std::cout<<"VAO initialized"<<std::endl;
 
     //Load Scene Data
-    CS123::CS123SceneLoader::load("Resources/SceneFiles/Parsing_Lab_City.xml", m_metaData);
+    CS123::CS123SceneLoader::load("Resources/SceneFiles/teapot_test.xml", m_metaData);
 
-    //Add shapes to vao array
+    //Initialize Primitive VAOs
+
+    //Add Sphere data to vao vector
     Sphere sph = Sphere(20, 20);
     std::shared_ptr<vbo> sphere_vbo = std::make_shared<vbo>(sph.generateShape());
     std::shared_ptr<vao> sphere_vao = std::make_shared<vao>(sphere_vbo, VAOType::POS_NORM);
     m_vaos.push_back(sphere_vao);
 
+    //Add Cube data to vao vector
     Cube cube = Cube(2);
     std::shared_ptr<vbo> cube_vbo = std::make_shared<vbo>(cube.generateShape());
     std::shared_ptr<vao> cube_vao = std::make_shared<vao>(cube_vbo, VAOType::POS_NORM);
     m_vaos.push_back(cube_vao);
+
+    //Add Cone data to vao vector TODO integrade cone generator
+    Sphere cone = Sphere(20, 20);
+    std::shared_ptr<vbo> cone_vbo = std::make_shared<vbo>(cone.generateShape());
+    std::shared_ptr<vao> cone_vao = std::make_shared<vao>(cone_vbo, VAOType::POS_NORM);
+    m_vaos.push_back(cone_vao);
+
+    //Add Cylinder data to vao vector TODO integrate cyliner generator
+    Sphere cyl = Sphere(20, 20);
+    std::shared_ptr<vbo> cyl_vbo = std::make_shared<vbo>(cyl.generateShape());
+    std::shared_ptr<vao> cyl_vao = std::make_shared<vao>(cyl_vbo, VAOType::POS_NORM);
+    m_vaos.push_back(cyl_vao);
+
+    //Initialize Mesh VAOs
+    int vaoIndex = 4;
+    std::set<std::string> uniqueMeshFiles = {};
+    // generate list of unique meshfiles used within scene
+    for (auto& shape : m_metaData.shapes) {
+        if (shape.primitive.type == PrimitiveType::PRIMITIVE_MESH) {
+            uniqueMeshFiles.insert(shape.primitive.meshfile);
+        }
+    }
+    for (auto& meshfile : uniqueMeshFiles) {
+        Mesh mesh = Mesh(meshfile);
+        std::shared_ptr<vbo> mesh_vbo = std::make_shared<vbo>(mesh.generateShape());
+        std::shared_ptr<vao> mesh_vao = std::make_shared<vao>(mesh_vbo, VAOType::POS_NORM);
+        m_vaos.push_back(mesh_vao);
+
+        m_meshLookup[meshfile] = vaoIndex;
+        vaoIndex++;
+    }
 
     //Set camera data
     m_cam.initialize(m_metaData, size().width(), size().height());
@@ -106,14 +147,31 @@ void GLRenderer::paintGL()
     }
 
     //Set Shapes
-    for(int i = 0; i<m_metaData.shapes.size(); i++){
-        m_shader.setUniformMat4("model", m_metaData.shapes[i].ctm);
-        m_shader.setUniformVec4("objectColor", m_metaData.shapes[i].primitive.material.cDiffuse);
-        if(m_metaData.shapes[i].primitive.type == PrimitiveType::PRIMITIVE_CUBE){
-            m_vaos[0]->draw(m_shader);
-        }
-        else{
-            m_vaos[0]->draw(m_shader);
+    for(int i = 0; i < m_metaData.shapes.size(); i++){
+        CS123::CS123SceneShapeData& shape = m_metaData.shapes[i];
+        m_shader.setUniformMat4("model", shape.ctm);
+        m_shader.setUniformVec4("objectColor", shape.primitive.material.cDiffuse);
+
+        switch (shape.primitive.type)  {
+            case PrimitiveType::PRIMITIVE_CUBE:
+                m_vaos[CUBE_VAO_INDEX]->draw(m_shader);
+                break;
+            case PrimitiveType::PRIMITIVE_SPHERE:
+                m_vaos[SPHERE_VAO_INDEX]->draw(m_shader);
+                break;
+            case PrimitiveType::PRIMITIVE_CONE:
+                m_vaos[CONE_VAO_INDEX]->draw(m_shader);
+                break;
+            case PrimitiveType::PRIMITIVE_CYLINDER:
+                m_vaos[CYLINDER_VAO_INDEX]->draw(m_shader);
+                break;
+            case PrimitiveType::PRIMITIVE_MESH: {
+                int vaoIndex = m_meshLookup[shape.primitive.meshfile];
+                m_vaos[vaoIndex]->draw(m_shader);
+                break;
+            }
+            default:
+                break;
         }
     }
 
@@ -150,7 +208,7 @@ void GLRenderer::mouseMoveEvent(QMouseEvent *event){
     int deltaY = posY - m_prev_mouse_pos.y;
 
     m_prev_mouse_pos = glm::vec2(posX, posY);
-    if(event->buttons() == Qt::RightButton){
+    if(event->buttons() == Qt::LeftButton){
         m_cam.mouseMoved(deltaX, deltaY);
         update();
     }

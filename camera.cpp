@@ -1,4 +1,5 @@
 #include "camera.h"
+#include <iostream>
 
 Camera::Camera()
 {
@@ -8,16 +9,16 @@ Camera::Camera()
 void Camera::initialize(CS123::CS123SceneMetaData data, int w, int h){
     m_near = 0.1f;
     m_far = 100.f;
-    m_fov = glm::degrees(data.cameraData.heightAngle);
+    m_fov = data.cameraData.heightAngle;
     m_pos = glm::vec3(data.cameraData.pos);
     m_look = glm::vec3(data.cameraData.look);
     m_up = glm::vec3(data.cameraData.up);
     m_aspect = w/(float)h;
 
+
     setProjection();
     setView();
 }
-
 
 Camera::~Camera()
 {
@@ -30,7 +31,7 @@ void Camera::finish()
 }
 
 void Camera::setProjection(){
-    m_proj = glm::perspective(m_fov, m_aspect, m_near, m_far);
+    m_proj = glm::perspective(glm::radians(m_fov), m_aspect, m_near, m_far);
 }
 
 glm::mat4 Camera::getProjection(){
@@ -64,6 +65,18 @@ void Camera::onKeyPressed(QKeyEvent *event){
     }
     if(event->key() == Qt::Key_D){
         m_pos -= perp;
+    }
+    if(event->key() == Qt::Key_Space){
+        m_pos += m_up;
+    }
+    if(event->key() == Qt::Key_Control){
+        m_pos -= m_up;
+    }
+    if(event->key() == Qt::Key_E){
+        std::cout << "befor: " << m_fov << std::endl;
+        m_fov++;
+        std::cout << "after: " << m_fov << std::endl;
+        setProjection();
     }
     setView();
 }

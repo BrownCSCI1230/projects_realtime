@@ -24,6 +24,7 @@ SOURCES += \
     glrenderer.cpp \
     main.cpp \
     mainwindow.cpp \
+    mesh.cpp \
     openglshape.cpp \
     settings.cpp \
     shader.cpp \
@@ -43,6 +44,7 @@ HEADERS += \
     fbo.h \
     glrenderer.h \
     mainwindow.h \
+    mesh.h \
     openglshape.h \
     settings.h \
     shader.h \

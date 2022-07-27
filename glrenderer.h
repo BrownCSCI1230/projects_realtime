@@ -39,6 +39,7 @@ private:
     std::vector<std::shared_ptr<vao>> m_vaos;   //Stores vaos for each shape (4 total)
     CS123::CS123SceneMetaData m_metaData;   //Stores scene data
     glm::vec2 m_prev_mouse_pos; //Stores mouse position
+    std::unordered_map<std::string, int> m_meshLookup;
 };
 
 #endif // GLRENDERER_H

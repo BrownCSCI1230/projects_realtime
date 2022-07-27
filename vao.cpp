@@ -1,4 +1,5 @@
 #include "vao.h"
+#include <iostream>
 
 vao::vao(std::shared_ptr<vbo> vbo, VAOType type)
 {

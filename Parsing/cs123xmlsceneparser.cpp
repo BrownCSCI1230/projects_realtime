@@ -118,7 +118,7 @@ bool CS123XmlSceneParser::parse() {
     m_cameraData.pos = glm::vec4(5.f, 5.f, 5.f, 1.f);
     m_cameraData.up = glm::vec4(0.f, 1.f, 0.f, 0.f);
     m_cameraData.look = glm::vec4(-1.f, -1.f, -1.f, 0.f);
-    m_cameraData.heightAngle = 45;
+    m_cameraData.heightAngle = 60;
     m_cameraData.aspectRatio = 1;
 
     // Default global data
