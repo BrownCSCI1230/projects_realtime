@@ -17,7 +17,7 @@ public:
 private:
     void setVertexData();
     void makeTile(glm::vec3 topLeft, glm::vec3 bottomLeft,
-                  glm::vec3 bottomRight, glm::vec3 topRight);
+                  glm::vec3 bottomRight, glm::vec3 topRight, glm::vec4 uvinfo);
     void makeSlice(float currTheta, float nextTheta);
     void makeSphere();
 

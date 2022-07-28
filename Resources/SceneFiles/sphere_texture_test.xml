@@ -1,8 +1,8 @@
 <scenefile>
 	<globaldata>
-		<diffusecoeff v="0.8"/>
-		<specularcoeff v="1"/>
-		<ambientcoeff v="0.2"/>
+		<diffusecoeff v="0.5"/>
+		<specularcoeff v="0.5"/>
+		<ambientcoeff v="0.5"/>
 	</globaldata>
 
 	<lightdata>
@@ -13,8 +13,9 @@
 
 	<object type="tree" name="root">
 		<transblock>
-			<object type="primitive" name="mesh" meshfile="Resources\MeshFiles\teapot.obj">
+			<object type="primitive" name="sphere">
 				<diffuse r="1" g="1" b="1"/>
+				<texture file="Resources\ImageFiles\marble.png" u="1" v="1"/>
 			</object>
 		</transblock>
 	</object>

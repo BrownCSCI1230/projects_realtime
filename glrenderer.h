@@ -7,6 +7,7 @@
 #include "vbo.h"
 #include "vao.h"
 #include "fbo.h"
+#include "texture.h"
 #include "Parsing/cs123sceneloader.h"
 #include "ShaderLoading/shaderloader.h"
 #include "camera.h"
@@ -39,7 +40,8 @@ private:
     std::vector<std::shared_ptr<vao>> m_vaos;   //Stores vaos for each shape (4 total)
     CS123::CS123SceneMetaData m_metaData;   //Stores scene data
     glm::vec2 m_prev_mouse_pos; //Stores mouse position
-    std::unordered_map<std::string, int> m_meshLookup;
+    std::unordered_map<std::string, int> m_meshLookup; // Used to look up mesh vao ids
+    std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures; // Used to look up texture ids
 };
 
 #endif // GLRENDERER_H

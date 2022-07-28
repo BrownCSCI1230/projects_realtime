@@ -9,13 +9,22 @@ vao::vao(std::shared_ptr<vbo> vbo, VAOType type)
 
     glGenVertexArrays(1, &m_handle);
 
-    if(type == VAOType::POS_NORM){
+    switch(type) {
+    case VAOType::POS_NORM:
         addAttribute(3, 6); //Add positions
         addAttribute(3, 6); //Add normals
-    }
-    else{
+        break;
+    case VAOType::POS_UV:
         addAttribute(3, 5); //Add positions
         addAttribute(2, 5); //Add uvs
+        break;
+    case VAOType::POS_NORM_UV:
+        addAttribute(3, 8); //Add positions
+        addAttribute(3, 8); //Add normals
+        addAttribute(2, 8); //Add uvs
+        break;
+    default:
+        break;
     }
 }
 

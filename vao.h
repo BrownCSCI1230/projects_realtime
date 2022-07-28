@@ -7,7 +7,8 @@
 
 enum VAOType {
     POS_NORM,
-    POS_UV
+    POS_UV,
+    POS_NORM_UV
 };
 
 class vao

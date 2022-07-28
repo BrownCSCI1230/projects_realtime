@@ -29,6 +29,7 @@ SOURCES += \
     settings.cpp \
     shader.cpp \
     sphere.cpp \
+    texture.cpp \
     vao.cpp \
     vbo.cpp \
     glew-2.2.0/src/glew.c
@@ -49,6 +50,7 @@ HEADERS += \
     settings.h \
     shader.h \
     sphere.h \
+    texture.h \
     vao.h \
     vbo.h \
     glew-2.2.0/include/GL/glew.h

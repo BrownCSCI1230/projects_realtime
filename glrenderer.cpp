@@ -64,14 +64,14 @@ void GLRenderer::initializeGL()
     std::cout<<"VAO initialized"<<std::endl;
 
     //Load Scene Data
-    CS123::CS123SceneLoader::load("Resources/SceneFiles/teapot_test.xml", m_metaData);
+    CS123::CS123SceneLoader::load("Resources/SceneFiles/sphere_texture_test.xml", m_metaData);
 
     //Initialize Primitive VAOs
 
     //Add Sphere data to vao vector
-    Sphere sph = Sphere(20, 20);
+    Sphere sph = Sphere(30, 30);
     std::shared_ptr<vbo> sphere_vbo = std::make_shared<vbo>(sph.generateShape());
-    std::shared_ptr<vao> sphere_vao = std::make_shared<vao>(sphere_vbo, VAOType::POS_NORM);
+    std::shared_ptr<vao> sphere_vao = std::make_shared<vao>(sphere_vbo, VAOType::POS_NORM_UV);
     m_vaos.push_back(sphere_vao);
 
     //Add Cube data to vao vector
@@ -80,7 +80,7 @@ void GLRenderer::initializeGL()
     std::shared_ptr<vao> cube_vao = std::make_shared<vao>(cube_vbo, VAOType::POS_NORM);
     m_vaos.push_back(cube_vao);
 
-    //Add Cone data to vao vector TODO integrade cone generator
+    //Add Cone data to vao vector TODO integrate cone generator
     Sphere cone = Sphere(20, 20);
     std::shared_ptr<vbo> cone_vbo = std::make_shared<vbo>(cone.generateShape());
     std::shared_ptr<vao> cone_vao = std::make_shared<vao>(cone_vbo, VAOType::POS_NORM);
@@ -101,6 +101,7 @@ void GLRenderer::initializeGL()
             uniqueMeshFiles.insert(shape.primitive.meshfile);
         }
     }
+    // using unique list, load each mesh once into a vao
     for (auto& meshfile : uniqueMeshFiles) {
         Mesh mesh = Mesh(meshfile);
         std::shared_ptr<vbo> mesh_vbo = std::make_shared<vbo>(mesh.generateShape());
@@ -109,6 +110,21 @@ void GLRenderer::initializeGL()
 
         m_meshLookup[meshfile] = vaoIndex;
         vaoIndex++;
+    }
+
+    //Initialize Texture Data
+    std::set<std::string> uniqueTextureFiles = {};
+    // get unique texture files
+    for (auto& shape : m_metaData.shapes) {
+        if (shape.primitive.material.textureMap.isUsed) {
+            uniqueTextureFiles.insert(shape.primitive.material.textureMap.filename);
+        }
+    }
+    // using unique list, load each texture once
+    for (auto& textureFile : uniqueTextureFiles) {
+        m_textures[textureFile] = std::make_unique<Texture>();
+        // default for now is always 0, theoretically should be set per shape
+        m_textures[textureFile]->initialize(textureFile, 0);
     }
 
     //Set camera data
@@ -151,6 +167,15 @@ void GLRenderer::paintGL()
         CS123::CS123SceneShapeData& shape = m_metaData.shapes[i];
         m_shader.setUniformMat4("model", shape.ctm);
         m_shader.setUniformVec4("objectColor", shape.primitive.material.cDiffuse);
+
+
+        m_shader.setUniform1i("texUsed",shape.primitive.material.textureMap.isUsed);
+
+        if (shape.primitive.material.textureMap.isUsed) {
+            Texture* tex = m_textures[shape.primitive.material.textureMap.filename].get();
+            tex->bind();
+            m_shader.setUniform1i("objTexture",tex->getTextureUnit());
+        }
 
         switch (shape.primitive.type)  {
             case PrimitiveType::PRIMITIVE_CUBE:
