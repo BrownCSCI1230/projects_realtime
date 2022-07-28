@@ -2,11 +2,6 @@
 in vec4 camSpace_pos;
 in vec4 camSpace_norm;
 
-in vec2 uv;
-
-uniform sampler2D objTexture;
-uniform bool texUsed;
-
 uniform mat4 model, view, projection;
 uniform float ambientIntensity;
 uniform float diffuseIntensity;
@@ -93,11 +88,6 @@ void main() {
 
 
    }
-   if (texUsed) {
-       vec3 texColor = vec3(texture(objTexture, uv));
-       fragColor = vec4(tempColor * texColor, 1.0);
-   } else {
-       fragColor = vec4(tempColor, 1.0);
 
-   }
+   fragColor = vec4(tempColor, 1.0);
 }

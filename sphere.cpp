@@ -23,20 +23,8 @@ void Sphere::updateParams(int param1, int param2)
     setVertexData();
 }
 
-float thetaToU(float theta) {
-    return theta/(2.0f * glm::pi<float>());
-}
-
-float phiToV(float phi) {
-    return 1 - phi/glm::pi<float>();
-}
-
 void Sphere::makeTile(glm::vec3 topLeft, glm::vec3 bottomLeft,
-                      glm::vec3 bottomRight, glm::vec3 topRight, glm::vec4 uvinfo) {
-    float uleft = thetaToU(uvinfo.x);
-    float uright = thetaToU(uvinfo.y);
-    float vtop = phiToV(uvinfo.z);
-    float vbot = phiToV(uvinfo.w);
+                      glm::vec3 bottomRight, glm::vec3 topRight) {
 
     glm::vec3 tlNormal = glm::normalize(topLeft);
     glm::vec3 blNormal = glm::normalize(bottomLeft);
@@ -45,27 +33,21 @@ void Sphere::makeTile(glm::vec3 topLeft, glm::vec3 bottomLeft,
 
     insertVec3(m_vertexData, topLeft);
     insertVec3(m_vertexData, tlNormal);
-    insertVec2(m_vertexData, glm::vec2(uleft,vtop));
 
     insertVec3(m_vertexData, bottomLeft);
     insertVec3(m_vertexData, blNormal);
-    insertVec2(m_vertexData, glm::vec2(uleft,vbot));
 
     insertVec3(m_vertexData, bottomRight);
     insertVec3(m_vertexData, brNormal);
-    insertVec2(m_vertexData, glm::vec2(uright,vbot));
 
     insertVec3(m_vertexData, bottomRight);
     insertVec3(m_vertexData, brNormal);
-    insertVec2(m_vertexData, glm::vec2(uright,vbot));
 
     insertVec3(m_vertexData, topRight);
     insertVec3(m_vertexData, trNormal);
-    insertVec2(m_vertexData, glm::vec2(uright,vtop));
 
     insertVec3(m_vertexData, topLeft);
     insertVec3(m_vertexData, tlNormal);
-    insertVec2(m_vertexData, glm::vec2(uleft,vtop));
 }
 
 void Sphere::makeSlice(float currentTheta, float nextTheta) {
@@ -100,7 +82,7 @@ void Sphere::makeSlice(float currentTheta, float nextTheta) {
                      m_radius * std::cos(topPhi),
                      m_radius * std::sin(topPhi) * std::sin(nextTheta));
 
-        makeTile(v1, v2, v3, v4, glm::vec4(currentTheta, nextTheta, topPhi, bottomPhi));
+        makeTile(v1, v2, v3, v4);
     }
 }
 

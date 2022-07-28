@@ -17,9 +17,6 @@ public:
     glm::mat4 getProjection();
     glm::mat4 getView();
     void resize(int w, int h);
-    void onKeyPressed(QKeyEvent *event);
-    void mouseMoved(float x, float y);
-    glm::mat4 rotate(float angle, glm::vec3 axis);
 
 private:
     void setView();

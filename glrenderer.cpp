@@ -4,7 +4,6 @@
 #include <set>
 #include "sphere.h"
 #include "cube.h"
-#include "mesh.h"
 #include "settings.h"
 
 const uint SPHERE_VAO_INDEX = 0;
@@ -15,7 +14,6 @@ const uint CYLINDER_VAO_INDEX = 3;
 GLRenderer::GLRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
 {
-    m_prev_mouse_pos = glm::vec2(size().width()/2, size().height()/2);
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 }
@@ -23,10 +21,6 @@ GLRenderer::GLRenderer(QWidget *parent)
 void GLRenderer::finish()
 {
     m_shader.finish();
-    m_fboShader.finish();
-    m_fbo.finish();
-    m_fullscreen_vbo->finish();
-    m_fullscreen_vao->finish();
     m_cam.finish();
     makeCurrent();
     doneCurrent();
@@ -44,24 +38,7 @@ void GLRenderer::initializeGL()
     glEnable(GL_DEPTH_TEST);
 
     m_shader.initialize(ShaderLoader::createShaderProgram("Resources/Shaders/phong.vert", "Resources/Shaders/phong.frag"));
-    m_fboShader.initialize(ShaderLoader::createShaderProgram("Resources/Shaders/postprocessing.vert", "Resources/Shaders/postprocessing.frag"));
-    m_fbo.initialize(size().width(), size().height());
     std::cout<<"FBO initialized"<<std::endl;
-
-    std::vector<GLfloat> fullscreen_quad =
-    {   //    POSITIONS    //    UVs    //
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f
-    };
-
-    m_fullscreen_vbo = std::make_shared<vbo>(fullscreen_quad);
-    std::cout<<"VBO initialized"<<std::endl;
-    m_fullscreen_vao = std::make_shared<vao>(m_fullscreen_vbo, VAOType::POS_UV);
-    std::cout<<"VAO initialized"<<std::endl;
 
     //Load Scene Data
     CS123::CS123SceneLoader::load("Resources/SceneFiles/sphere_texture_test.xml", m_metaData);
@@ -71,7 +48,7 @@ void GLRenderer::initializeGL()
     //Add Sphere data to vao vector
     Sphere sph = Sphere(30, 30);
     std::shared_ptr<vbo> sphere_vbo = std::make_shared<vbo>(sph.generateShape());
-    std::shared_ptr<vao> sphere_vao = std::make_shared<vao>(sphere_vbo, VAOType::POS_NORM_UV);
+    std::shared_ptr<vao> sphere_vao = std::make_shared<vao>(sphere_vbo, VAOType::POS_NORM);
     m_vaos.push_back(sphere_vao);
 
     //Add Cube data to vao vector
@@ -79,53 +56,6 @@ void GLRenderer::initializeGL()
     std::shared_ptr<vbo> cube_vbo = std::make_shared<vbo>(cube.generateShape());
     std::shared_ptr<vao> cube_vao = std::make_shared<vao>(cube_vbo, VAOType::POS_NORM);
     m_vaos.push_back(cube_vao);
-
-    //Add Cone data to vao vector TODO integrate cone generator
-    Sphere cone = Sphere(20, 20);
-    std::shared_ptr<vbo> cone_vbo = std::make_shared<vbo>(cone.generateShape());
-    std::shared_ptr<vao> cone_vao = std::make_shared<vao>(cone_vbo, VAOType::POS_NORM);
-    m_vaos.push_back(cone_vao);
-
-    //Add Cylinder data to vao vector TODO integrate cyliner generator
-    Sphere cyl = Sphere(20, 20);
-    std::shared_ptr<vbo> cyl_vbo = std::make_shared<vbo>(cyl.generateShape());
-    std::shared_ptr<vao> cyl_vao = std::make_shared<vao>(cyl_vbo, VAOType::POS_NORM);
-    m_vaos.push_back(cyl_vao);
-
-    //Initialize Mesh VAOs
-    int vaoIndex = 4;
-    std::set<std::string> uniqueMeshFiles = {};
-    // generate list of unique meshfiles used within scene
-    for (auto& shape : m_metaData.shapes) {
-        if (shape.primitive.type == PrimitiveType::PRIMITIVE_MESH) {
-            uniqueMeshFiles.insert(shape.primitive.meshfile);
-        }
-    }
-    // using unique list, load each mesh once into a vao
-    for (auto& meshfile : uniqueMeshFiles) {
-        Mesh mesh = Mesh(meshfile);
-        std::shared_ptr<vbo> mesh_vbo = std::make_shared<vbo>(mesh.generateShape());
-        std::shared_ptr<vao> mesh_vao = std::make_shared<vao>(mesh_vbo, VAOType::POS_NORM);
-        m_vaos.push_back(mesh_vao);
-
-        m_meshLookup[meshfile] = vaoIndex;
-        vaoIndex++;
-    }
-
-    //Initialize Texture Data
-    std::set<std::string> uniqueTextureFiles = {};
-    // get unique texture files
-    for (auto& shape : m_metaData.shapes) {
-        if (shape.primitive.material.textureMap.isUsed) {
-            uniqueTextureFiles.insert(shape.primitive.material.textureMap.filename);
-        }
-    }
-    // using unique list, load each texture once
-    for (auto& textureFile : uniqueTextureFiles) {
-        m_textures[textureFile] = std::make_unique<Texture>();
-        // default for now is always 0, theoretically should be set per shape
-        m_textures[textureFile]->initialize(textureFile, 0);
-    }
 
     //Set camera data
     m_cam.initialize(m_metaData, size().width(), size().height());
@@ -155,11 +85,6 @@ void GLRenderer::paintGL()
             m_shader.setUniformVec4("worldSpace_lightDir["+std::to_string(j)+"]", m_metaData.lights[j].dir);
             m_shader.setUniformVec3("lightIntensity["+std::to_string(j)+"]", m_metaData.lights[j].function);
         }
-        if(m_metaData.lights[j].type == LightType::LIGHT_POINT){
-            m_shader.setUniform1i("lightType["+std::to_string(j)+"]", 1);
-            m_shader.setUniformVec4("worldSpace_lightPos["+std::to_string(j)+"]", m_metaData.lights[j].pos);
-            m_shader.setUniformVec3("lightIntensity["+std::to_string(j)+"]", m_metaData.lights[j].function);
-        }
     }
 
     //Set Shapes
@@ -167,15 +92,6 @@ void GLRenderer::paintGL()
         CS123::CS123SceneShapeData& shape = m_metaData.shapes[i];
         m_shader.setUniformMat4("model", shape.ctm);
         m_shader.setUniformVec4("objectColor", shape.primitive.material.cDiffuse);
-
-
-        m_shader.setUniform1i("texUsed",shape.primitive.material.textureMap.isUsed);
-
-        if (shape.primitive.material.textureMap.isUsed) {
-            Texture* tex = m_textures[shape.primitive.material.textureMap.filename].get();
-            tex->bind();
-            m_shader.setUniform1i("objTexture",tex->getTextureUnit());
-        }
 
         switch (shape.primitive.type)  {
             case PrimitiveType::PRIMITIVE_CUBE:
@@ -190,29 +106,15 @@ void GLRenderer::paintGL()
             case PrimitiveType::PRIMITIVE_CYLINDER:
                 m_vaos[CYLINDER_VAO_INDEX]->draw(m_shader);
                 break;
-            case PrimitiveType::PRIMITIVE_MESH: {
-                int vaoIndex = m_meshLookup[shape.primitive.meshfile];
-                m_vaos[vaoIndex]->draw(m_shader);
-                break;
-            }
             default:
                 break;
         }
     }
-
-//    m_fbo.unbindFBO();
-//    glClear(GL_COLOR_BUFFER_BIT);
-//    m_fboShader.bind();
-//    m_fboShader.setUniform1i("invertColors", settings.invertColors);
-//    m_fboShader.setUniform1i("sharpenImage", settings.sharpenImage);
-//    m_fbo.bindTexture();
-//    //glDisable(GL_DEPTH_TEST);
-//    m_fullscreen_vao->draw(m_fboShader);
 }
 
 void GLRenderer::resizeGL(int w, int h)
 {
-    //m_cam->resize(w, h);
+    m_cam.resize(w, h);
     update();
 }
 
@@ -222,19 +124,10 @@ void GLRenderer::settingsChange(){
 
 void GLRenderer::keyPressEvent(QKeyEvent *event){
     std::cout<<"Key Press"<<std::endl;
-    m_cam.onKeyPressed(event);
     update();
 }
 
 void GLRenderer::mouseMoveEvent(QMouseEvent *event){
     int posX = event->position().x();
     int posY = event->position().y();
-    int deltaX = posX - m_prev_mouse_pos.x;
-    int deltaY = posY - m_prev_mouse_pos.y;
-
-    m_prev_mouse_pos = glm::vec2(posX, posY);
-    if(event->buttons() == Qt::LeftButton){
-        m_cam.mouseMoved(deltaX, deltaY);
-        update();
-    }
 }

@@ -20,16 +20,13 @@ SOURCES += \
     Parsing/cs123xmlsceneparser.cpp \
     camera.cpp \
     cube.cpp \
-    fbo.cpp \
     glrenderer.cpp \
     main.cpp \
     mainwindow.cpp \
-    mesh.cpp \
     openglshape.cpp \
     settings.cpp \
     shader.cpp \
     sphere.cpp \
-    texture.cpp \
     vao.cpp \
     vbo.cpp \
     glew-2.2.0/src/glew.c
@@ -42,15 +39,12 @@ HEADERS += \
     ShaderLoading/shaderloader.h \
     camera.h \
     cube.h \
-    fbo.h \
     glrenderer.h \
     mainwindow.h \
-    mesh.h \
     openglshape.h \
     settings.h \
     shader.h \
     sphere.h \
-    texture.h \
     vao.h \
     vbo.h \
     glew-2.2.0/include/GL/glew.h
