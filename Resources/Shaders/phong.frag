@@ -14,7 +14,6 @@ uniform float shininess;
 
 uniform int lightType[8];
 uniform vec4 lightColor[8];
-uniform vec3 lightFunction[8];
 uniform vec4 camSpace_lightPos[8];
 uniform vec4 camSpace_lightDir[8];
 
@@ -28,41 +27,11 @@ vec4 getToLight(int lightIndex) {
     int LIGHT_SPOT = 2;
     int LIGHT_AREA = 3;
 
-    if (lightType[lightIndex] == LIGHT_POINT) {
-        return normalize((camSpace_lightPos[lightIndex]) - camSpace_pos);
-    }
-    else if (lightType[lightIndex] == LIGHT_DIRECTIONAL) {
+    if (lightType[lightIndex] == LIGHT_DIRECTIONAL) {
         return normalize(-camSpace_lightDir[lightIndex]);
-    }
-    else if (lightType[lightIndex] == LIGHT_SPOT) {
-        return normalize(camSpace_lightPos[lightIndex] - camSpace_pos);
-    }
-    else if (lightType[lightIndex] == LIGHT_AREA) {
-        return normalize(camSpace_lightPos[lightIndex] - camSpace_pos);
     }
 
     return vec4(0);
-}
-
-float attenuationFactor(int lightIndex) {
-    int LIGHT_POINT = 0;
-    int LIGHT_DIRECTIONAL = 1;
-    int LIGHT_SPOT = 2;
-    int LIGHT_AREA = 3;
-
-    if (lightType[lightIndex] == LIGHT_POINT) {
-        vec3 coeffs = lightFunction[lightIndex];
-        float d = length(camSpace_lightPos[lightIndex] - camSpace_pos);
-        return 1.0 / (coeffs.x + coeffs.y * d + coeffs.z * d * d);
-    }
-    else if (lightType[lightIndex] == LIGHT_SPOT) {
-        return 1;
-    }
-    else if (lightType[lightIndex] == LIGHT_AREA) {
-        return 1;
-    }
-
-    return 1;
 }
 
 float computeDiffuseIntensity(vec3 camSpace_toLight) {
@@ -108,11 +77,8 @@ void main() {
         float diffuse_intensity = computeDiffuseIntensity(vec3(camSpace_toLight));
         float specular_intensity = computeSpecularIntensity(vec3(camSpace_toLight), vec3(camSpace_toEye));
 
-        float att = attenuationFactor(i);
-
-
-        diff = diff + diffuse_intensity * vec3(lightColor[i]) * att;
-        spec = spec + specular_intensity * vec3(lightColor[i]) * att;
+        diff = diff + diffuse_intensity * vec3(lightColor[i]);
+        spec = spec + specular_intensity * vec3(lightColor[i]);
     }
 
     diff = diff * vec3(kd) * vec3(obj_diffuse_color);

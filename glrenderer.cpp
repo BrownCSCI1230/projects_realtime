@@ -86,12 +86,6 @@ void GLRenderer::paintGL()
             m_shader.setUniformVec4("camSpace_lightDir["+std::to_string(j)+"]", view * m_metaData.lights[j].dir);
             m_shader.setUniformVec4("lightColor["+std::to_string(j)+"]", m_metaData.lights[j].color);
         }
-        if(m_metaData.lights[j].type == LightType::LIGHT_POINT){
-            m_shader.setUniform1i("lightType["+std::to_string(j)+"]", 0);
-            m_shader.setUniformVec4("camSpace_lightPos["+std::to_string(j)+"]", view * m_metaData.lights[j].pos);
-            m_shader.setUniformVec4("lightColor["+std::to_string(j)+"]", m_metaData.lights[j].color);
-            m_shader.setUniformVec3("lightFunction["+std::to_string(j)+"]", m_metaData.lights[j].function);
-        }
     }
 
     //Set Shapes
