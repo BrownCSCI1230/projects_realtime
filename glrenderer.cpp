@@ -73,17 +73,17 @@ void GLRenderer::paintGL()
     m_shader.setUniformMat4("projection", m_cam.getProjection());
 
     //Set Global Uniforms
-    m_shader.setUniform1f("ambientIntensity", m_metaData.globalData.ka);
-    m_shader.setUniform1f("diffuseIntensity", m_metaData.globalData.kd);
-    m_shader.setUniform1f("specularIntensity", m_metaData.globalData.ks);
+    m_shader.setUniform1f("ka", m_metaData.globalData.ka);
+    m_shader.setUniform1f("kd", m_metaData.globalData.kd);
+    m_shader.setUniform1f("ks", m_metaData.globalData.ks);
 
     //Set Lights
     m_shader.setUniform1i("numLights", m_metaData.lights.size());
     for(int j = 0; j<m_metaData.lights.size(); j++){
         if(m_metaData.lights[j].type == LightType::LIGHT_DIRECTIONAL){
-            m_shader.setUniform1i("lightType["+std::to_string(j)+"]", 0);
+            m_shader.setUniform1i("lightType["+std::to_string(j)+"]", 1);
             m_shader.setUniformVec4("worldSpace_lightDir["+std::to_string(j)+"]", m_metaData.lights[j].dir);
-            m_shader.setUniformVec3("lightIntensity["+std::to_string(j)+"]", m_metaData.lights[j].function);
+            m_shader.setUniformVec4("lightColor["+std::to_string(j)+"]", m_metaData.lights[j].color);
         }
     }
 
@@ -91,7 +91,10 @@ void GLRenderer::paintGL()
     for(int i = 0; i < m_metaData.shapes.size(); i++){
         CS123::CS123SceneShapeData& shape = m_metaData.shapes[i];
         m_shader.setUniformMat4("model", shape.ctm);
-        m_shader.setUniformVec4("objectColor", shape.primitive.material.cDiffuse);
+        m_shader.setUniformVec4("obj_ambient_color", shape.primitive.material.cAmbient);
+        m_shader.setUniformVec4("obj_diffuse_color", shape.primitive.material.cDiffuse);
+        m_shader.setUniformVec4("obj_specular_color", shape.primitive.material.cSpecular);
+        m_shader.setUniform1f("shininess", shape.primitive.material.shininess);
 
         switch (shape.primitive.type)  {
             case PrimitiveType::PRIMITIVE_CUBE:

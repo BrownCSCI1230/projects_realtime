@@ -1,93 +1,101 @@
 #version 330 core
+
 in vec4 camSpace_pos;
 in vec4 camSpace_norm;
 
 uniform mat4 model, view, projection;
-uniform float ambientIntensity;
-uniform float diffuseIntensity;
-uniform float specularIntensity;
-uniform vec4 objectColor;
+uniform float ka;
+uniform float kd;
+uniform float ks;
+uniform vec4 obj_ambient_color;
+uniform vec4 obj_diffuse_color;
+uniform vec4 obj_specular_color;
 uniform float shininess;
 
 uniform int lightType[8];
+uniform vec4 lightColor[8];
 uniform vec4 worldSpace_lightPos[8];
 uniform vec4 worldSpace_lightDir[8];
-uniform vec3 lightIntensity[8];
 
 uniform int numLights;
 
 out vec4 fragColor;
 
-vec3 pointLight(int index){
-    vec3 camSpace_norm_n = normalize(camSpace_norm.xyz);
+vec4 getToLight(int lightIndex) {
+    int LIGHT_POINT = 0;
+    int LIGHT_DIRECTIONAL = 1;
+    int LIGHT_SPOT = 2;
+    int LIGHT_AREA = 3;
 
-    vec4 camSpace_toLight = view*worldSpace_lightPos[index] - camSpace_pos;
-    vec3 camSpace_toLight_n = normalize(camSpace_toLight.xyz);
-
-    vec3 camSpace_toEye_n = -normalize(camSpace_pos.xyz);
-    vec3 camSpace_reflectedLight_n = reflect(-camSpace_toLight_n, camSpace_norm_n);
-
-    //Diffuse
-    float diffuseDot = max(dot(camSpace_toLight_n, camSpace_norm_n), 0);
-
-    //Specular
-    float specularDot = max(dot(camSpace_reflectedLight_n, camSpace_toEye_n), 0);
-
-    return objectColor.xyz*(diffuseDot*diffuseIntensity+pow(specularDot, 5));
-
-    if(shininess <= 0.0){
-        return objectColor.xyz*(diffuseDot*diffuseIntensity);
+    if (lightType[lightIndex] == LIGHT_POINT) {
+        return view * worldSpace_lightPos[lightIndex] - camSpace_pos;
+    }
+    else if (lightType[lightIndex] == LIGHT_DIRECTIONAL) {
+        return view * worldSpace_lightDir[lightIndex];
+    }
+    else if (lightType[lightIndex] == LIGHT_SPOT) {
+        return view * worldSpace_lightPos[lightIndex] - camSpace_pos;
+    }
+    else if (lightType[lightIndex] == LIGHT_AREA) {
+        return view * worldSpace_lightPos[lightIndex] - camSpace_pos;
     }
 
-    return objectColor.xyz*(diffuseDot*diffuseIntensity+pow(specularDot, shininess)*specularIntensity);
+    return vec4(0);
 }
 
-vec3 directionalLight(int index){
-    vec3 camSpace_norm_n = normalize(camSpace_norm.xyz);
+float computeDiffuseIntensity(vec4 camSpace_toLight) {
+    //simple dot product to get diffuse intensity
+    return max(dot(camSpace_toLight,
+                   camSpace_norm),
+              0);
+}
 
-    vec4 camSpace_lightDir = view*worldSpace_lightDir[index];
-    vec3 camSpace_lightDir_n = normalize(camSpace_lightDir.xyz);
-
-    vec3 camSpace_toEye_n = -normalize(camSpace_pos.xyz);
-    vec3 camSpace_reflectedLight_n = reflect(camSpace_lightDir_n, camSpace_norm_n);
-
-    //Diffuse
-    float diffuseDot = max(dot(-camSpace_lightDir_n.xyz, camSpace_norm_n), 0);
-
-    //Specular
-    float specularDot = max(dot(camSpace_reflectedLight_n, camSpace_toEye_n), 0);
-
-    if(shininess <= 0.0){
-        return objectColor.xyz*(diffuseDot*diffuseIntensity);
+float computeSpecularIntensity(vec4 camSpace_toLight, vec4 camSpace_toEye) {
+    // guard against pow weirdness when exponent is 0
+    if (shininess < 0.0001) {
+        return 0;
     }
 
-    return objectColor.xyz*((diffuseDot*diffuseIntensity)+(pow(specularDot, shininess)*specularIntensity));
-}
+    //reflect toLight
+    vec4 camSpace_toLightReflected = reflect(-camSpace_toLight, camSpace_norm);
 
-vec3 attenuate(vec3 initialLightColor, int index){
-    //No attenuation currently
-    return initialLightColor*lightIntensity[index].x;
+    //Compute specular intensity using toEye, reflected light, and shininess
+    return pow(max(dot(camSpace_toLightReflected,
+                       camSpace_toEye),
+                   0),
+               shininess);
 }
 
 void main() {
-    vec3 tempColor = objectColor.xyz*ambientIntensity;
-
-   //Diffuse and Specular Terms
-
-   for(int i = 0; i<numLights; i+= 1){
-       if(lightType[i] == 0){
-           //Directional Light
-           tempColor += lightIntensity[i].x*directionalLight(i);
-       }
-       if(lightType[i] == 1){
-           //Point Light
-           vec3 pointContribution = pointLight(i);
-           //Add attenuation
-           tempColor += attenuate(pointContribution, i);
-       }
+    // Declare ambient, diffuse, and specular terms
+    vec3 ambi = ka * vec3(obj_ambient_color);
+    vec3 diff = vec3(0.0);
+    vec3 spec = vec3(0.0);
 
 
-   }
+    // Compute toEye Vector for specular intensity computation;
+    vec4 camSpace_toEye = normalize(vec4(0,0,0,1) - camSpace_pos);
 
-   fragColor = vec4(tempColor, 1.0);
+
+    // Compute per-light diffuse and specular contribution
+    for(int i = 0; i<numLights; i+= 1){
+
+        // get direction vector to light based on light type
+        vec4 camSpace_toLight = getToLight(i);
+
+
+        float diffuse_intensity = computeDiffuseIntensity(camSpace_toLight);
+        float specular_intensity = computeSpecularIntensity(camSpace_toLight, camSpace_toEye);
+
+
+        diff = diff + vec3(diffuse_intensity) * vec3(lightColor[i]);
+        spec = spec + vec3(specular_intensity) * vec3(lightColor[i]);
+    }
+
+    diff = diff * vec3(kd) * vec3(obj_diffuse_color);
+    spec = spec * vec3(ks) * vec3(obj_specular_color);
+
+
+
+    fragColor = vec4(ambi + diff + spec, 1.0);
 }
