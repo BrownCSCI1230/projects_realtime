@@ -41,7 +41,7 @@ void GLRenderer::initializeGL()
     std::cout<<"FBO initialized"<<std::endl;
 
     //Load Scene Data
-    CS123::CS123SceneLoader::load("Resources/SceneFiles/sphere_texture_test.xml", m_metaData);
+    CS123::CS123SceneLoader::load("Resources/SceneFiles/ballspec.xml", m_metaData);
 
     //Initialize Primitive VAOs
 
@@ -68,8 +68,9 @@ void GLRenderer::paintGL()
     //m_fbo.bindFBO();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Allow them to use this one call here? It is the only one that needs to be only called once per loop I think
 
+    glm::mat4 view = m_cam.getView();
     //Set Camera Uniforms
-    m_shader.setUniformMat4("view", m_cam.getView());
+    m_shader.setUniformMat4("view", view);
     m_shader.setUniformMat4("projection", m_cam.getProjection());
 
     //Set Global Uniforms
@@ -82,8 +83,14 @@ void GLRenderer::paintGL()
     for(int j = 0; j<m_metaData.lights.size(); j++){
         if(m_metaData.lights[j].type == LightType::LIGHT_DIRECTIONAL){
             m_shader.setUniform1i("lightType["+std::to_string(j)+"]", 1);
-            m_shader.setUniformVec4("worldSpace_lightDir["+std::to_string(j)+"]", m_metaData.lights[j].dir);
+            m_shader.setUniformVec4("camSpace_lightDir["+std::to_string(j)+"]", view * m_metaData.lights[j].dir);
             m_shader.setUniformVec4("lightColor["+std::to_string(j)+"]", m_metaData.lights[j].color);
+        }
+        if(m_metaData.lights[j].type == LightType::LIGHT_POINT){
+            m_shader.setUniform1i("lightType["+std::to_string(j)+"]", 0);
+            m_shader.setUniformVec4("camSpace_lightPos["+std::to_string(j)+"]", view * m_metaData.lights[j].pos);
+            m_shader.setUniformVec4("lightColor["+std::to_string(j)+"]", m_metaData.lights[j].color);
+            m_shader.setUniformVec3("lightFunction["+std::to_string(j)+"]", m_metaData.lights[j].function);
         }
     }
 

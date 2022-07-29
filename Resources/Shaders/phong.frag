@@ -14,8 +14,9 @@ uniform float shininess;
 
 uniform int lightType[8];
 uniform vec4 lightColor[8];
-uniform vec4 worldSpace_lightPos[8];
-uniform vec4 worldSpace_lightDir[8];
+uniform vec3 lightFunction[8];
+uniform vec4 camSpace_lightPos[8];
+uniform vec4 camSpace_lightDir[8];
 
 uniform int numLights;
 
@@ -28,36 +29,57 @@ vec4 getToLight(int lightIndex) {
     int LIGHT_AREA = 3;
 
     if (lightType[lightIndex] == LIGHT_POINT) {
-        return view * worldSpace_lightPos[lightIndex] - camSpace_pos;
+        return normalize((camSpace_lightPos[lightIndex]) - camSpace_pos);
     }
     else if (lightType[lightIndex] == LIGHT_DIRECTIONAL) {
-        return view * worldSpace_lightDir[lightIndex];
+        return normalize(-camSpace_lightDir[lightIndex]);
     }
     else if (lightType[lightIndex] == LIGHT_SPOT) {
-        return view * worldSpace_lightPos[lightIndex] - camSpace_pos;
+        return normalize(camSpace_lightPos[lightIndex] - camSpace_pos);
     }
     else if (lightType[lightIndex] == LIGHT_AREA) {
-        return view * worldSpace_lightPos[lightIndex] - camSpace_pos;
+        return normalize(camSpace_lightPos[lightIndex] - camSpace_pos);
     }
 
     return vec4(0);
 }
 
-float computeDiffuseIntensity(vec4 camSpace_toLight) {
+float attenuationFactor(int lightIndex) {
+    int LIGHT_POINT = 0;
+    int LIGHT_DIRECTIONAL = 1;
+    int LIGHT_SPOT = 2;
+    int LIGHT_AREA = 3;
+
+    if (lightType[lightIndex] == LIGHT_POINT) {
+        vec3 coeffs = lightFunction[lightIndex];
+        float d = length(camSpace_lightPos[lightIndex] - camSpace_pos);
+        return 1.0 / (coeffs.x + coeffs.y * d + coeffs.z * d * d);
+    }
+    else if (lightType[lightIndex] == LIGHT_SPOT) {
+        return 1;
+    }
+    else if (lightType[lightIndex] == LIGHT_AREA) {
+        return 1;
+    }
+
+    return 1;
+}
+
+float computeDiffuseIntensity(vec3 camSpace_toLight) {
     //simple dot product to get diffuse intensity
     return max(dot(camSpace_toLight,
-                   camSpace_norm),
+                   normalize(vec3(camSpace_norm))),
               0);
 }
 
-float computeSpecularIntensity(vec4 camSpace_toLight, vec4 camSpace_toEye) {
+float computeSpecularIntensity(vec3 camSpace_toLight, vec3 camSpace_toEye) {
     // guard against pow weirdness when exponent is 0
     if (shininess < 0.0001) {
         return 0;
     }
 
     //reflect toLight
-    vec4 camSpace_toLightReflected = reflect(-camSpace_toLight, camSpace_norm);
+    vec3 camSpace_toLightReflected = reflect(-camSpace_toLight, normalize(vec3(camSpace_norm)));
 
     //Compute specular intensity using toEye, reflected light, and shininess
     return pow(max(dot(camSpace_toLightReflected,
@@ -83,13 +105,14 @@ void main() {
         // get direction vector to light based on light type
         vec4 camSpace_toLight = getToLight(i);
 
+        float diffuse_intensity = computeDiffuseIntensity(vec3(camSpace_toLight));
+        float specular_intensity = computeSpecularIntensity(vec3(camSpace_toLight), vec3(camSpace_toEye));
 
-        float diffuse_intensity = computeDiffuseIntensity(camSpace_toLight);
-        float specular_intensity = computeSpecularIntensity(camSpace_toLight, camSpace_toEye);
+        float att = attenuationFactor(i);
 
 
-        diff = diff + vec3(diffuse_intensity) * vec3(lightColor[i]);
-        spec = spec + vec3(specular_intensity) * vec3(lightColor[i]);
+        diff = diff + diffuse_intensity * vec3(lightColor[i]) * att;
+        spec = spec + specular_intensity * vec3(lightColor[i]) * att;
     }
 
     diff = diff * vec3(kd) * vec3(obj_diffuse_color);
@@ -97,5 +120,5 @@ void main() {
 
 
 
-    fragColor = vec4(ambi + diff + spec, 1.0);
+    fragColor = vec4(clamp(ambi + diff + spec,0,1), 1.0);
 }
