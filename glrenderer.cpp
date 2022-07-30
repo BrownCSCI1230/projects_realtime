@@ -64,7 +64,7 @@ void GLRenderer::initializeGL()
     std::cout<<"VAO initialized"<<std::endl;
 
     //Load Scene Data
-    CS123::CS123SceneLoader::load("Resources/SceneFiles/ballspec.xml", m_metaData);
+    CS123::CS123SceneLoader::load("Resources/SceneFiles/sphere_texture_test.xml", m_metaData);
 
     //Initialize Primitive VAOs
 
@@ -217,7 +217,7 @@ void GLRenderer::paintGL()
 
 void GLRenderer::resizeGL(int w, int h)
 {
-    //m_cam->resize(w, h);
+    m_cam.resize(w, h);
     update();
 }
 
