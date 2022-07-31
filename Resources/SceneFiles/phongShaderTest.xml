@@ -16,28 +16,48 @@
 		<id v="0"/>
 		<color r="0.7" g="0.3" b="0.2"/>
 		<function v1="1" v2="0" v3="0"/>
+<<<<<<< HEAD
 		<position x="10" y="10" z="10"/>
+=======
+		<type v="directional"/>
+		<direction x="-10" y="10" z="10"/>
+>>>>>>> 9ca22f0... added cylinder + cone primitives
 	</lightdata>
 
 	<lightdata>
 		<id v="1"/>
 		<color r="0.2" g="0.4" b="0.8"/>
 		<function v1="1" v2="0" v3="0"/>
+<<<<<<< HEAD
 		<position x="10" y="-10" z="-10"/>
+=======
+		<type v="directional"/>
+		<direction x="-10" y="-10" z="-10"/>
+>>>>>>> 9ca22f0... added cylinder + cone primitives
 	</lightdata>
 
 	<lightdata>
 		<id v="2"/>
 		<color r="0.7" g="0.7" b="0.2"/>
 		<function v1="1" v2="0" v3="0"/>
+<<<<<<< HEAD
 		<position x="10" y="-10" z="10"/>
+=======
+		<type v="directional"/>
+		<direction x="-10" y="-10" z="10"/>
+>>>>>>> 9ca22f0... added cylinder + cone primitives
 	</lightdata>
 
 	<lightdata>
 		<id v="3"/>
 		<color r="0.8" g="0.4" b="0.8"/>
 		<function v1="1" v2="0" v3="0"/>
+<<<<<<< HEAD
 		<position x="10" y="10" z="-10"/>
+=======
+		<type v="directional"/>
+		<direction x="-10" y="10" z="-10"/>
+>>>>>>> 9ca22f0... added cylinder + cone primitives
 	</lightdata>
 
 

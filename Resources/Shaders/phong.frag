@@ -123,7 +123,6 @@ void main() {
     spec = spec * vec3(ks) * vec3(obj_specular_color);
 
 
-
     vec3 tempColor = clamp(ambi + diff + spec,0,1);
 
     if (texUsed) {
