@@ -1,0 +1,75 @@
+<scenefile>
+	<globaldata>
+		<diffusecoeff v="0.5"/>
+		<specularcoeff v="0.5"/>
+		<ambientcoeff v="0.5"/>
+	</globaldata>
+
+	<cameradata>
+		<pos x="15" y="0" z="0"/>
+		<up x="0" y="1" z="0"/>
+		<focus x="0" y="0" z="0"/>
+		<heightangle v="30"/>
+	</cameradata>
+
+
+	<lightdata>
+		<id v="1"/>
+		<color r="1" g="0" b="0"/>
+		<function v1="1" v2="0" v3="0"/>
+		<type v="directional"/>
+		<direction x="-10" y="-10" z="-10"/>
+	</lightdata>
+
+	<lightdata>
+		<id v="2"/>
+		<color r="0" g="1" b="0"/>
+		<function v1="1" v2="0" v3="0"/>
+		<type v="directional"/>
+		<direction x="-10" y="-10" z="10"/>
+	</lightdata>
+
+	<lightdata>
+		<id v="3"/>
+		<color r="0" g="0" b="1"/>
+		<function v1="1" v2="0" v3="0"/>
+		<type v="directional"/>
+		<direction x="-10" y="10" z="-10"/>
+	</lightdata>
+
+
+	<object type="tree" name="root">
+		<transblock>
+			<scale x="2" y="2" z="2"/>
+			<translate x="0" y="0" z="0"/>
+			<object type="primitive" name="sphere" >
+				<ambient r="0" g="0.1" b="0.0"/>
+				<diffuse r="0" g="1" b="0"/>
+				<shininess v="40"/>
+				<specular r="1.0" g="1.0" b="1.0"/>
+			</object>
+		</transblock>
+		<transblock>
+			<translate x="0" y="0" z="2"/>
+			<scale x="2" y="2" z="2"/>
+			<object type="primitive" name="sphere" >
+				<ambient r="0.1" g="0.0" b="0.0"/>
+				<diffuse r="1" g="0" b="0"/>
+				<shininess v="40"/>
+				<specular r="1.0" g="1.0" b="1.0"/>
+			</object>
+		</transblock>
+		<transblock>
+			<translate x="0" y="0" z="-2"/>
+			<scale x="2" y="2" z="2"/>
+			<object type="primitive" name="sphere" >
+				<ambient r="0" g="0.0" b="0.1"/>
+				<diffuse r="0" g="0" b="1"/>
+				<shininess v="40"/>
+				<specular r="1.0" g="1.0" b="1.0"/>
+			</object>
+		</transblock>
+	</object>
+
+</scenefile>
+

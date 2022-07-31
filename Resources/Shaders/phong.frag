@@ -84,7 +84,5 @@ void main() {
     diff = diff * vec3(kd) * vec3(obj_diffuse_color);
     spec = spec * vec3(ks) * vec3(obj_specular_color);
 
-
-
     fragColor = vec4(clamp(ambi + diff + spec,0,1), 1.0);
 }

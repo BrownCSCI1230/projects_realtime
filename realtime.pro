@@ -19,7 +19,9 @@ SOURCES += \
     Parsing/cs123sceneloader.cpp \
     Parsing/cs123xmlsceneparser.cpp \
     camera.cpp \
+    cone.cpp \
     cube.cpp \
+    cylinder.cpp \
     glrenderer.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -38,7 +40,9 @@ HEADERS += \
     Parsing/cs123xmlsceneparser.h \
     ShaderLoading/shaderloader.h \
     camera.h \
+    cone.h \
     cube.h \
+    cylinder.h \
     glrenderer.h \
     mainwindow.h \
     openglshape.h \

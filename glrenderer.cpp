@@ -3,6 +3,8 @@
 #include <QCoreApplication>
 #include <set>
 #include "sphere.h"
+#include "cylinder.h"
+#include "cone.h"
 #include "cube.h"
 #include "settings.h"
 
@@ -41,7 +43,7 @@ void GLRenderer::initializeGL()
     std::cout<<"FBO initialized"<<std::endl;
 
     //Load Scene Data
-    CS123::CS123SceneLoader::load("Resources/SceneFiles/ballspec.xml", m_metaData);
+    CS123::CS123SceneLoader::load("Resources/SceneFiles/all_objects.xml", m_metaData);
 
     //Initialize Primitive VAOs
 
@@ -56,6 +58,16 @@ void GLRenderer::initializeGL()
     std::shared_ptr<vbo> cube_vbo = std::make_shared<vbo>(cube.generateShape());
     std::shared_ptr<vao> cube_vao = std::make_shared<vao>(cube_vbo, VAOType::POS_NORM);
     m_vaos.push_back(cube_vao);
+
+    Cone cone = Cone(20, 5);
+    std::shared_ptr<vbo> cone_vbo = std::make_shared<vbo>(cone.generateShape());
+    std::shared_ptr<vao> cone_vao = std::make_shared<vao>(cone_vbo, VAOType::POS_NORM);
+    m_vaos.push_back(cone_vao);
+
+    Cylinder cyl = Cylinder(20, 1);
+    std::shared_ptr<vbo> cylinder_vbo = std::make_shared<vbo>(cyl.generateShape());
+    std::shared_ptr<vao> cylinder_vao = std::make_shared<vao>(cylinder_vbo, VAOType::POS_NORM);
+    m_vaos.push_back(cylinder_vao);
 
     //Set camera data
     m_cam.initialize(m_metaData, size().width(), size().height());
